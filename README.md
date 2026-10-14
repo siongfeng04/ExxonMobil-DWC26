@@ -9,18 +9,18 @@ the 10 best matches → fill the organiser's template.
 
 ## Results
 
-| | |
-|---|---|
-| Best history match | misfit **0.442**, better than every provided simulation (best: case 76, 0.453) |
-| Proxy accuracy on unseen simulations | < 0.1 % error on 2008 cumulatives |
-| First forecast quarter vs unseen real data (2008-Q1) | oil **+1.3 %**, water **−0.3 %** |
+|                                                      |                                                                                |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Best history match                                   | misfit **0.442**, better than every provided simulation (best: case 76, 0.453) |
+| Proxy accuracy on unseen simulations                 | < 0.1 % error on 2008 cumulatives                                              |
+| First forecast quarter vs unseen real data (2008-Q1) | oil **+1.3 %**, water **−0.3 %**                                               |
 
 Forecast cumulatives at 2028-01-01 across the 10 delivered cases:
 
-| | P10 | P50 | P90 |
-|---|---|---|---|
-| Oil [MMSTB] | 55.94 | 56.20 | 56.44 |
-| Gas [MMMSCF] | 20.32 | 20.42 | 20.50 |
+|               | P10   | P50   | P90   |
+| ------------- | ----- | ----- | ----- |
+| Oil [MMSTB]   | 55.94 | 56.20 | 56.44 |
+| Gas [MMMSCF]  | 20.32 | 20.42 | 20.50 |
 | Water [MMSTB] | 86.22 | 87.81 | 89.29 |
 
 Deliverable: [outputs/09 Template Deliverable.xlsx](outputs/09%20Template%20Deliverable.xlsx)
@@ -37,24 +37,24 @@ flowchart LR
     F --> G[Template deliverable]
 ```
 
-| Notebook | What it does |
-|---|---|
-| [00_DWC2026.ipynb](notebook/00_DWC2026.ipynb) | Cleans the raw files and builds the curve files in `data/` |
-| [01_Proxy_Model.ipynb](notebook/01_Proxy_Model.ipynb) | Compares proxy models and forecast methods |
+| Notebook                                                                          | What it does                                                    |
+| --------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| [00_DWC2026.ipynb](notebook/00_DWC2026.ipynb)                                     | Cleans the raw files and builds the curve files in `data/`      |
+| [01_Proxy_Model.ipynb](notebook/01_Proxy_Model.ipynb)                             | Compares proxy models and forecast methods                      |
 | [02_History_Matching_Forecast.ipynb](notebook/02_History_Matching_Forecast.ipynb) | History matching, optimiser comparison, validation, deliverable |
 
 The full analysis, charts and reasoning are in the notebooks. [pipeline/](pipeline/) holds the same logic as notebook 02, without charts.
 
 ## Key decisions
 
-| Decision | Chosen over | Why |
-|---|---|---|
-| Inputs = the 4 case parameters | Grid-block data | Grid data doesn't exist for new parameter sets, and it is determined by the parameters anyway |
-| PCA + **Gaussian Process** proxy | Ridge, neural network (MLP) | Most accurate on validation cases by a wide margin, and suits small data (70 training cases) |
-| **Decline-curve** forecast | GRU neural network, blend | Lowest backtest error; physically plausible |
-| **Sobol + L-BFGS-B** optimiser | Differential Evolution | Both find the same best match; Sobol covers the acceptable region more evenly |
-| 10 cases = spread-out acceptable matches | Top 10 by misfit | Shows the real parameter uncertainty instead of ten near-copies |
-| Forecast **anchored** to last observed rate | Unanchored | Best oil error in the field backtest |
+| Decision                                    | Chosen over                 | Why                                                                                           |
+| ------------------------------------------- | --------------------------- | --------------------------------------------------------------------------------------------- |
+| Inputs = the 4 case parameters              | Grid-block data             | Grid data doesn't exist for new parameter sets, and it is determined by the parameters anyway |
+| PCA + **Gaussian Process** proxy            | Ridge, neural network (MLP) | Most accurate on validation cases by a wide margin, and suits small data (70 training cases)  |
+| **Decline-curve** forecast                  | GRU neural network, blend   | Lowest backtest error; physically plausible                                                   |
+| **Sobol + L-BFGS-B** optimiser              | Differential Evolution      | Both find the same best match; Sobol covers the acceptable region more evenly                 |
+| 10 cases = spread-out acceptable matches    | Top 10 by misfit            | Shows the real parameter uncertainty instead of ten near-copies                               |
+| Forecast **anchored** to last observed rate | Unanchored                  | Best oil error in the field backtest                                                          |
 
 ## Key findings
 
@@ -76,9 +76,6 @@ pip install -r requirements.txt
 1. Put the organiser's starter kit in `dwc26/` (gitignored). Only the official template is read from there.
 2. Run `python -m pipeline.main` from the repo root, or open notebook 02 and run all cells (~6 minutes).
 
-**Known issue:** notebook 01 still reads the template from the repo root, where it has been removed, and expects the
-repo root as its working directory.
-
 ## Repository layout
 
 ```
@@ -88,5 +85,3 @@ notebook/     00 data prep, 01 proxy model, 02 history matching + forecast
 pipeline/     config, data loading, proxy, history matching, forecast, end-to-end run
 outputs/      deliverable, history_match_results.xlsx, figures/
 ```
-
-> The datasets are provided exclusively for the DataWorks Challenge 2026. Do not publish them externally.
