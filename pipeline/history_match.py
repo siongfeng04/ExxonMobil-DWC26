@@ -7,14 +7,14 @@ Gas is left out: GOR is ~0.36 MSCF/STB in every case and quarter, so gas carries
 Search: Sobol screening of the whole parameter box, then L-BFGS-B polishing from the best distinct starts.
 history_match_de (differential evolution) and history_match_esmda (ensemble smoother) are the alternative searches,
 compared in notebook/02_History_Matching_Forecast.
-The parameter box is the range spanned by the 100 simulated cases, so the proxy is never asked to extrapolate.
+The parameter box is the range spanned by all 100 simulated cases (train, validation and test alike), so the
+candidates come from the full parameter population and the proxy is never asked to extrapolate.
 
-Selection of the deliverable cases: the misfit has a floor (~0.44) that no parameter set gets below, because the
-observed late-time water cut lies outside what the simulated ensemble can produce. Differences of a few percent
-above that floor are not meaningful, so every point within ACCEPT_TOL of the best is an acceptable match. From those,
-the cases are spread out with farthest-point sampling (seeded with the best match), so the forecasts express the
-remaining parameter uncertainty rather than ten copies of one answer. Fault transmissibility, for example, is almost
-unconstrained by the history.
+Selection of the deliverable cases (DWC26 FAQ 8–9: driven by history-match quality, uncertainty second): every point
+within ACCEPT_TOL of the best misfit is an acceptable match. From those, the cases are taken best match first,
+skipping any within MIN_SEPARATION of a case already picked. Without that skip the 10 best are near-copies of one
+point (they differ only in fault transmissibility, which the history leaves unconstrained and which barely changes
+the forecast), so the forecasts would show no parameter uncertainty at all.
 """
 import numpy as np
 import pandas as pd
@@ -26,6 +26,7 @@ from .config import PARAM_COLS, SEED
 SIGMA_RATE = 0.03  # × max observed rate of that phase
 SIGMA_CUM = 0.02   # × final observed cumulative of that phase
 ACCEPT_TOL = 0.10  # acceptable match: misfit ≤ (1 + ACCEPT_TOL) × best misfit
+MIN_SEPARATION = 0.2  # selected cases are at least this far apart in the unit parameter cube (no near-copies)
 ESMDA_ALPHAS = (9.333, 7.0, 4.0, 2.0)  # inflation factors; sum of 1/α = 1 (Emerick & Reynolds, 2013)
 LOG_SCALED = np.array([False, False, True, False])  # permeability multiplier is searched on a log scale
 
@@ -84,20 +85,9 @@ def _distinct(U, order, k, min_dist):
     return picked
 
 
-def _farthest_points(U, k):
-    """Row 0 first, then repeatedly the row farthest from everything picked so far."""
-    picked = [0]
-    d = np.linalg.norm(U - U[0], axis=1)
-    while len(picked) < min(k, len(U)):
-        i = int(np.argmax(d))
-        picked.append(i)
-        d = np.minimum(d, np.linalg.norm(U - U[i], axis=1))
-    return picked
-
-
 def history_match(misfit, box, n_sobol_log2=13, n_starts=40, n_keep=10, accept_tol=ACCEPT_TOL, seed=SEED):
     """Returns (selected, accepted): DataFrames of [misfit, *PARAM_COLS].
-    selected: n_keep spread-out acceptable matches, sorted by misfit (row 0 = best match).
+    selected: the n_keep best acceptable matches that are not near-copies, sorted by misfit (row 0 = best match).
     accepted: every evaluated point within accept_tol of the best misfit."""
     U = qmc.Sobol(4, scramble=True, seed=seed).random_base2(n_sobol_log2)
     f = np.concatenate([misfit(box.to_raw(chunk)) for chunk in np.array_split(U, max(1, len(U) // 1024))])
@@ -167,5 +157,5 @@ def _select(U_all, f_all, box, n_keep, accept_tol):
         out.insert(0, 'misfit', f_all[idx])
         return out
 
-    keep = sorted(_farthest_points(U_all[ok], n_keep))  # indices into the misfit-sorted accepted set
+    keep = _distinct(U_all[ok], range(ok.sum()), n_keep, MIN_SEPARATION)  # best first, skipping near-copies
     return frame(np.flatnonzero(ok)[keep]), frame(np.flatnonzero(ok))

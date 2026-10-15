@@ -8,7 +8,8 @@ Steps
 2. Field backtest: history-match the real observations up to a cutoff, forecast the held-out quarters, compare
    with what the field actually did. This chooses between forecast variants on real data.
 3. Final run: proxy on all 100 cases → history match to 2008 → forecast to 2028 for the 10 selected cases →
-   outputs/09 Template Deliverable.xlsx, outputs/history_match_results.xlsx, outputs/figures/07-09.
+   outputs/result/09 Template Deliverable.xlsx, outputs/result/history_match_results.xlsx and
+   outputs/figures/pipeline/01-03.
 """
 import sys
 import time
@@ -20,8 +21,8 @@ import numpy as np
 import pandas as pd
 from sklearn.exceptions import ConvergenceWarning
 
-from .config import (COLORS, DELIVERABLE_PATH, FC_DATES, FIG_DIR, N_DELIVER, OUT_DIR, PARAM_COLS, TEMPLATE_PATH,
-                     TEST_CASES, TRAIN_CASES, UNITS, VARS)
+from .config import (COLORS, DELIVERABLE_PATH, FC_DATES, FIG_DIR, N_DELIVER, OUT_DIR, PARAM_COLS, RESULT_DIR,
+                     RESULTS_PATH, TEMPLATE_PATH, TEST_CASES, TRAIN_CASES, UNITS, VARS)
 from .data import load_field, load_params
 from .forecast import forecast, write_template
 from .history_match import Misfit, ParamBox, history_match
@@ -159,7 +160,8 @@ def main():
         'xtick.color': '#898781', 'ytick.color': '#898781', 'axes.titlesize': 11, 'axes.titleweight': 'bold',
         'legend.frameon': False, 'font.size': 9.5,
     })
-    FIG_DIR.mkdir(parents=True, exist_ok=True)
+    for d in (FIG_DIR, RESULT_DIR):
+        d.mkdir(parents=True, exist_ok=True)
 
     field, params = load_field(), load_params()
     dates = field['dates']
@@ -200,7 +202,7 @@ def main():
     for v, (name, unit) in enumerate(zip(VARS, UNITS)):
         summary[f'{name} cum 2008 [{unit}]'] = field['obs_cum'][-1, v]
         summary[f'{name} cum 2028 [{unit}]'] = fc['cum'][:, -1, v]
-    with pd.ExcelWriter(OUT_DIR / 'history_match_results.xlsx') as xw:
+    with pd.ExcelWriter(RESULTS_PATH) as xw:
         summary.to_excel(xw, sheet_name='Selected cases')
         accepted.to_excel(xw, sheet_name='Acceptable matches', index=False)
         provided.rename('misfit').sort_values().to_excel(xw, sheet_name='Provided case misfit')
@@ -209,11 +211,12 @@ def main():
     print('\nSelected cases written to the template:')
     print(summary.round(3).to_string())
 
-    plot_history_match(field, {'rate': fc['rate_hist'], 'cum': fc['cum_hist']}, '07_history_match.png')
-    plot_forecast(field, fc, '08_forecast_2028.png')
-    plot_parameters(params, accepted, selected, '09_matched_parameters.png')
-    print(f'\nWrote {DELIVERABLE_PATH.relative_to(OUT_DIR.parent)}, outputs/history_match_results.xlsx and '
-          f'outputs/figures/07-09 in {time.time() - t0:.0f}s')
+    plot_history_match(field, {'rate': fc['rate_hist'], 'cum': fc['cum_hist']}, '01_history_match.png')
+    plot_forecast(field, fc, '02_forecast_2028.png')
+    plot_parameters(params, accepted, selected, '03_matched_parameters.png')
+    root = OUT_DIR.parent
+    print(f'\nWrote {DELIVERABLE_PATH.relative_to(root)}, {RESULTS_PATH.relative_to(root)} and '
+          f'{FIG_DIR.relative_to(root)}/01-03 in {time.time() - t0:.0f}s')
 
 
 if __name__ == '__main__':

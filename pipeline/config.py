@@ -3,12 +3,14 @@ from pathlib import Path
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA_DIR = ROOT / 'data'  # prepared inputs from notebook/DWC2026.ipynb (committed to the repo)
+DATA_DIR = ROOT / 'data'  # prepared inputs, copied from notebook/00_DWC2026.ipynb's Reservoir_ML_Data/ (committed)
 RAW_DIR = ROOT / 'dwc26' / 'TestCases'
 TEMPLATE_PATH = RAW_DIR / '09 Template Deliverable.xlsx'  # official copy: all 10 sheets run to 2028-01-01
 OUT_DIR = ROOT / 'outputs'
-FIG_DIR = OUT_DIR / 'figures'
-DELIVERABLE_PATH = OUT_DIR / '09 Template Deliverable.xlsx'
+FIG_DIR = OUT_DIR / 'figures' / 'pipeline'  # key charts from python -m pipeline.main (notebooks have their own folders)
+RESULT_DIR = OUT_DIR / 'result'  # Excel outputs
+DELIVERABLE_PATH = RESULT_DIR / '09 Template Deliverable.xlsx'
+RESULTS_PATH = RESULT_DIR / 'history_match_results.xlsx'
 
 SEED = 42
 VARS = ['oil', 'gas', 'water']

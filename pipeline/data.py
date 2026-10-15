@@ -1,7 +1,7 @@
 """Load the prepared Excel files in `data/` into case-ordered numpy cubes.
 
-The two `Simulation_*_Consolidated.xlsx` files are `02 Field Production.xlsx` reshaped by `notebook/DWC2026.ipynb`
-into long format (Date, Case, oil, gas, water): one block of rows per case, values identical to the original sheets.
+The two `Simulation_*_Consolidated.xlsx` files are `02 Field Production.xlsx` reshaped by `notebook/00_DWC2026.ipynb`
+(written to `Reservoir_ML_Data/`, copied here) into long format (Date, Case, oil, gas, water): one block of rows per case, values identical to the original sheets.
 The consolidation lost one column name: the observed field history (`RAMP_History` in the original) comes through
 as `UNKNOWN_COL_101`. It is the history-matching target, not junk.
 
