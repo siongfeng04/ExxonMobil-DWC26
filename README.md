@@ -102,8 +102,7 @@ pipeline/             config, data loading, proxy, history matching, forecast, e
 outputs/
 ├── result/           Excel outputs
 │   ├── 09 Template Deliverable.xlsx      the submission (10 cases, 2008 → 2028), Power BI source
-│   ├── history_match_results.xlsx        selected cases, acceptable matches, blind test, field backtest
-│   └── Forecast_Deliverable_DEMO.xlsx    notebook 01's placeholder demo (not the submission)
+│   └── history_match_results.xlsx        selected cases, acceptable matches, blind test, field backtest
 ├── figures/          one folder per notebook, charts numbered in the order they appear
 │   ├── 01_Proxy_Model/                   01–06: proxy accuracy, sensitivity, forecast backtests
 │   ├── 02_History_Matching_Forecast/     01–14: every chart in notebook 02 (see below)
@@ -111,7 +110,7 @@ outputs/
 └── models/           notebook 01's saved models (not in git)
 ```
 
-Notebook 02 charts, for the slides:
+Notebook 02 charts:
 
 | File | Shows |
 |---|---|
