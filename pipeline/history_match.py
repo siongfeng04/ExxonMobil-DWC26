@@ -5,7 +5,8 @@ of an assumed measurement error σ. A value of 1 means the proxy is, on average,
 Gas is left out: GOR is ~0.36 MSCF/STB in every case and quarter, so gas carries no information beyond oil.
 
 Search: Sobol screening of the whole parameter box, then L-BFGS-B polishing from the best distinct starts.
-history_match_de is the alternative search (differential evolution), compared in notebook/History_Matching_Forecast.
+history_match_de (differential evolution) and history_match_esmda (ensemble smoother) are the alternative searches,
+compared in notebook/02_History_Matching_Forecast.
 The parameter box is the range spanned by the 100 simulated cases, so the proxy is never asked to extrapolate.
 
 Selection of the deliverable cases: the misfit has a floor (~0.44) that no parameter set gets below, because the
@@ -18,13 +19,14 @@ unconstrained by the history.
 import numpy as np
 import pandas as pd
 from scipy.optimize import differential_evolution, minimize
-from scipy.stats import qmc
+from scipy.stats import norm, qmc
 
 from .config import PARAM_COLS, SEED
 
 SIGMA_RATE = 0.03  # × max observed rate of that phase
 SIGMA_CUM = 0.02   # × final observed cumulative of that phase
 ACCEPT_TOL = 0.10  # acceptable match: misfit ≤ (1 + ACCEPT_TOL) × best misfit
+ESMDA_ALPHAS = (9.333, 7.0, 4.0, 2.0)  # inflation factors; sum of 1/α = 1 (Emerick & Reynolds, 2013)
 LOG_SCALED = np.array([False, False, True, False])  # permeability multiplier is searched on a log scale
 
 
@@ -62,6 +64,13 @@ class Misfit:
 
     def __call__(self, raw):
         return self.from_curves(*self.proxy.predict(np.atleast_2d(raw)))
+
+    def residuals(self, raw):
+        """(n, 4T) residuals in units of σ, blocks concatenated. All blocks have T dates, so the misfit is the
+        mean of their squares."""
+        rate, cum = self.proxy.predict(np.atleast_2d(raw))
+        curves = {'rate': rate, 'cum': cum}
+        return np.concatenate([(curves[kind][:, :, v] - d) / s for v, kind, d, s in self.blocks], axis=1)
 
 
 def _distinct(U, order, k, min_dist):
@@ -120,6 +129,31 @@ def history_match_de(misfit, box, popsize=15, maxiter=300, n_keep=10, accept_tol
 
     differential_evolution(objective, [(0, 1)] * 4, popsize=popsize, maxiter=maxiter, tol=1e-8, seed=seed,
                            polish=True, vectorized=True, updating='deferred')
+    return _select(np.vstack(seen_U), np.concatenate(seen_f), box, n_keep, accept_tol)
+
+
+def history_match_esmda(misfit, box, n_ens=200, alphas=ESMDA_ALPHAS, n_keep=10, accept_tol=ACCEPT_TOL, seed=SEED):
+    """Same contract as history_match, with the ensemble smoother with multiple data assimilation (ES-MDA) as the search.
+
+    An ensemble of n_ens parameter sets is drawn from the prior and updated len(alphas) times with a Kalman-type step,
+    z ← z + C_zr (C_rr + α I)⁻¹ (√α ε − r), where r are the σ-scaled residuals (so the data covariance is I) and the
+    covariances come from the ensemble itself: no gradients and no search. Parameters live in Gaussian space z and
+    map to the unit cube by u = Φ(z), so z ~ N(0, I) is the uniform prior on the box and updates never leave it.
+    Needs misfit.residuals. Every ensemble (prior, intermediates, final) is scored and goes to the selection step."""
+    rng = np.random.default_rng(seed)
+    Z = rng.standard_normal((n_ens, 4))
+    seen_U, seen_f = [], []
+    for alpha in (*alphas, None):  # None: score the final ensemble, no update
+        U = norm.cdf(Z)
+        R = misfit.residuals(box.to_raw(U))
+        seen_U.append(U)
+        seen_f.append(np.mean(R ** 2, axis=1))
+        if alpha is None:
+            break
+        dZ, dR = Z - Z.mean(0), R - R.mean(0)
+        C_zr, C_rr = dZ.T @ dR / (n_ens - 1), dR.T @ dR / (n_ens - 1)
+        noise = np.sqrt(alpha) * rng.standard_normal(R.shape)
+        Z = Z + (noise - R) @ np.linalg.solve(C_rr + alpha * np.eye(R.shape[1]), C_zr.T)
     return _select(np.vstack(seen_U), np.concatenate(seen_f), box, n_keep, accept_tol)
 
 

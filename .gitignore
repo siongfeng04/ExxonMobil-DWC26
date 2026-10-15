@@ -37,6 +37,7 @@ Thumbs.db
 # dwc36 starter kit and Reservoir_ML_data
 dwc26/*
 Reservoir_ML_data/*
+notes.md
 
 # Parsed copy of 02 Field Production.xlsx written by an older pipeline/data.py
 outputs/cache/

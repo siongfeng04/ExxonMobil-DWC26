@@ -52,7 +52,7 @@ The full analysis, charts and reasoning are in the notebooks. [pipeline/](pipeli
 | Inputs = the 4 case parameters              | Grid-block data             | Grid data doesn't exist for new parameter sets, and it is determined by the parameters anyway |
 | PCA + **Gaussian Process** proxy            | Ridge, neural network (MLP) | Most accurate on validation cases by a wide margin, and suits small data (70 training cases)  |
 | **Decline-curve** forecast                  | GRU neural network, blend   | Lowest backtest error; physically plausible                                                   |
-| **Sobol + L-BFGS-B** optimiser              | Differential Evolution      | Both find the same best match; Sobol covers the acceptable region more evenly                 |
+| **Sobol + L-BFGS-B** optimiser              | Differential Evolution, ES-MDA | All find the same best match; Sobol finds it exactly on every seed. ES-MDA is 15× cheaper, the choice if the real simulator were used |
 | 10 cases = spread-out acceptable matches    | Top 10 by misfit            | Shows the real parameter uncertainty instead of ten near-copies                               |
 | Forecast **anchored** to last observed rate | Unanchored                  | Best oil error in the field backtest                                                          |
 
