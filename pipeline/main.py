@@ -21,8 +21,8 @@ import numpy as np
 import pandas as pd
 from sklearn.exceptions import ConvergenceWarning
 
-from .config import (COLORS, DELIVERABLE_PATH, FC_DATES, FIG_DIR, N_DELIVER, OUT_DIR, PARAM_COLS, RESULT_DIR,
-                     RESULTS_PATH, TEMPLATE_PATH, TEST_CASES, TRAIN_CASES, UNITS, VARS)
+from .config import (COLORS, DECLINE_WINDOW, DELIVERABLE_PATH, FC_DATES, FIG_DIR, N_DELIVER, OUT_DIR, PARAM_COLS,
+                     RESULT_DIR, RESULTS_PATH, TEMPLATE_PATH, TEST_CASES, TRAIN_CASES, UNITS, VARS)
 from .data import load_field, load_params
 from .forecast import forecast, write_template
 from .history_match import Misfit, ParamBox, history_match
@@ -69,7 +69,7 @@ def field_backtest(field, params, corr, cutoffs=('2005-01-01', '2006-01-01', '20
             fc = forecast(proxy, theta, dates[h], o[h], oc[h], corr, fc_dates=bt, anchor=anchor)
             cum = fc['cum'] if anchor else fc['cum'] - fc['cum_hist'][:, -1:] + oc[c]  # same cum start for both
             variants[name] = (fc['rate'], cum)
-        r_obs, c_obs, _ = decline_forecast(o[None, h], oc[None, h], dates[h], bt, 5, corr)
+        r_obs, c_obs, _ = decline_forecast(o[None, h], oc[None, h], dates[h], bt, DECLINE_WINDOW, corr)
         variants['D: decline on observed only'] = (r_obs, c_obs)
         for name, (r, cm) in variants.items():
             row = {'cutoff': cut, 'quarters ahead': len(bt), 'method': name}

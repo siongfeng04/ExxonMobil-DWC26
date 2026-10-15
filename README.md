@@ -32,14 +32,14 @@ flowchart LR
     A[Organiser Excel files] --> B[00 Data preparation]
     B --> C[01 Proxy model<br/>4 params → curves]
     C --> D[02 History matching<br/>Sobol + L-BFGS-B]
-    D --> E[Pick 10 diverse matches]
+    D --> E[Pick 10 best matches,<br/>no near-copies]
     E --> F[Forecast to 2028]
     F --> G[Template deliverable]
 ```
 
 | Notebook                                                                          | What it does                                                    |
 | --------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| [00_DWC2026.ipynb](notebook/00_DWC2026.ipynb)                                     | Cleans the raw files in `dwc26/` into `Reservoir_ML_Data/`; the curve files used later are copied to `data/` |
+| [00_Data_Preparation.ipynb](notebook/00_Data_Preparation.ipynb)                                     | Cleans the raw files in `dwc26/` into `data/` |
 | [01_Proxy_Model.ipynb](notebook/01_Proxy_Model.ipynb)                             | Compares proxy models and forecast methods                      |
 | [02_History_Matching_Forecast.ipynb](notebook/02_History_Matching_Forecast.ipynb) | History matching, optimiser comparison, validation, deliverable |
 
@@ -68,46 +68,42 @@ The full analysis, charts and reasoning are in the notebooks. [pipeline/](pipeli
 
 ## How to run
 
+Requires Python 3.11 (tested with 3.11.9).
+
 ```bash
 python -m venv .venv
 .venv\Scripts\activate          # Windows; source .venv/bin/activate on macOS/Linux
 pip install -r requirements.txt
 ```
 
-**Quick run (uses the cleaned data already in the repo)**
+**Quick run (uses the cleaned data already in `data/`)**
 
-1. Put the organiser's starter kit in `dwc26/` (gitignored). Only the official template is read from there.
-2. Run `python -m pipeline.main` from the repo root, or open notebook 02 and run all cells (~6 minutes).
+Run `python -m pipeline.main` from the repo root, or open notebook 02 and run all cells (~6 minutes).
+The case parameters (`01 Introduction.xlsx`) and the official template are read from `dwc26/TestCases/`.
 
-The cleaned inputs are committed in `data/`, so the cleaning step is not needed for this.
+**Full run from the raw files (optional, to rebuild `data/`)**
 
-**Full run from the raw files (optional, to reproduce `data/`)**
-
-1. Put the starter kit in `dwc26/` as above.
-2. Run [notebook 00](notebook/00_DWC2026.ipynb). It reads `dwc26/TestCases/` and writes the cleaned files to
-   `Reservoir_ML_Data/`. The grid-cleaning part (Sections 2–4) is slow (~1.6 GB of Excel)
-   and its outputs are not used later; to skip it, run only the setup cell and Sections 5–6 (production curves).
-3. Copy `Simulation_Rates_Consolidated.xlsx` and `Simulation_Cumulatives_Consolidated.xlsx` from `Reservoir_ML_Data/`,
-   and `01 Introduction.xlsx` from `dwc26/TestCases/`, into `data/`.
-4. Run the pipeline or notebook 02 as in the quick run.
+1. Run [notebook 00](notebook/00_Data_Preparation.ipynb). It reads `dwc26/TestCases/` and writes the cleaned files to
+   `data/`. The grid-cleaning part (Sections 2–4) is slow (~1.6 GB of Excel) and its outputs are not used later;
+   to skip it, run only the setup cell and Sections 5–7 (case parameters and production curves).
+2. Run the pipeline or notebook 02 as in the quick run.
 
 ## Repository layout
 
 ```
-data/                 prepared inputs: parameters, simulated curves, observed history
-dwc26/                organiser starter kit (not in git)
-Reservoir_ML_Data/    cleaned outputs of notebook 00 (not in git)
+data/                 cleaned outputs of notebook 00: simulated curves + observed history (used later), grid data
+dwc26/                organiser starter kit: raw files, case parameters, official template
 notebook/             00 data prep, 01 proxy model, 02 history matching + forecast
 pipeline/             config, data loading, proxy, history matching, forecast, end-to-end run
 outputs/
 ├── result/           Excel outputs
-│   ├── 09 Template Deliverable.xlsx      the submission (10 cases, 2008 → 2028), Power BI source
+│   ├── 09 Template Deliverable.xlsx      the submission (10 cases, 2008 → 2028)
 │   └── history_match_results.xlsx        selected cases, acceptable matches, blind test, field backtest
 ├── figures/          one folder per notebook, charts numbered in the order they appear
 │   ├── 01_Proxy_Model/                   01–06: proxy accuracy, sensitivity, forecast backtests
 │   ├── 02_History_Matching_Forecast/     01–14: every chart in notebook 02 (see below)
 │   └── pipeline/                         01–03: key charts saved by python -m pipeline.main
-└── models/           notebook 01's saved models (not in git)
+└── models/           notebook 01's saved models (created when notebook 01 is run)
 ```
 
 Notebook 02 charts:

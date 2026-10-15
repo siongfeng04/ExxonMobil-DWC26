@@ -3,8 +3,9 @@ from pathlib import Path
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA_DIR = ROOT / 'data'  # prepared inputs, copied from notebook/00_DWC2026.ipynb's Reservoir_ML_Data/ (committed)
-RAW_DIR = ROOT / 'dwc26' / 'TestCases'
+DATA_DIR = ROOT / 'data'  # cleaned outputs of notebook/00_Data_Preparation.ipynb
+RAW_DIR = ROOT / 'dwc26' / 'TestCases'  # organiser's starter kit
+INTRO_PATH = RAW_DIR / '01 Introduction.xlsx'  # uncertainty parameters of the 100 cases
 TEMPLATE_PATH = RAW_DIR / '09 Template Deliverable.xlsx'  # official copy: all 10 sheets run to 2028-01-01
 OUT_DIR = ROOT / 'outputs'
 FIG_DIR = OUT_DIR / 'figures' / 'pipeline'  # key charts from python -m pipeline.main (notebooks have their own folders)

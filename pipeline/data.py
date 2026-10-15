@@ -1,7 +1,7 @@
-"""Load the prepared Excel files in `data/` into case-ordered numpy cubes.
+"""Load the case parameters and the prepared Excel files in `data/` into case-ordered numpy cubes.
 
-The two `Simulation_*_Consolidated.xlsx` files are `02 Field Production.xlsx` reshaped by `notebook/00_DWC2026.ipynb`
-(written to `Reservoir_ML_Data/`, copied here) into long format (Date, Case, oil, gas, water): one block of rows per case, values identical to the original sheets.
+The two `Simulation_*_Consolidated.xlsx` files are `02 Field Production.xlsx` reshaped by `notebook/00_Data_Preparation.ipynb`
+(written to `data/`) into long format (Date, Case, oil, gas, water): one block of rows per case, values identical to the original sheets.
 The consolidation lost one column name: the observed field history (`RAMP_History` in the original) comes through
 as `UNKNOWN_COL_101`. It is the history-matching target, not junk.
 
@@ -17,9 +17,8 @@ import re
 import numpy as np
 import pandas as pd
 
-from .config import DATA_DIR, PARAM_COLS
+from .config import DATA_DIR, INTRO_PATH, PARAM_COLS
 
-INTRO_FILE = DATA_DIR / '01 Introduction.xlsx'
 CURVE_FILES = {  # cube axis order is always [oil, gas, water]
     'rate': (DATA_DIR / 'Simulation_Rates_Consolidated.xlsx',
              ['Oil_production_rate_STB_d', 'Gas_production_rate_MSCF_d', 'Water_production_rate_STB_d']),
@@ -35,7 +34,7 @@ def case_number(label):
 
 def load_params():
     """Uncertainty table: (100, 4) DataFrame indexed by case number."""
-    p = pd.read_excel(INTRO_FILE, sheet_name='Uncertainty Values')
+    p = pd.read_excel(INTRO_PATH, sheet_name='Uncertainty Values')
     p.index = p['Item'].map(case_number)
     p.index.name = 'case'
     return p[PARAM_COLS].sort_index()
