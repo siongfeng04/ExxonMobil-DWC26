@@ -1,4 +1,4 @@
-"""History proxy and decline-curve forecast, ported from notebook/ML_Proxy_Model.ipynb (sections 4-6).
+"""History proxy and decline-curve forecast, ported from notebook/01_Proxy_Model.ipynb (sections 4-6).
 
 The notebook selected the Gaussian Process proxy (validation cum NRMSE < 0.1 %) and Approach A (proxy + decline)
 as the forecast method on the end-to-end backtest; only those two are kept here.

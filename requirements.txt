@@ -1,5 +1,5 @@
-# Tested with: pandas 3.0.3, numpy 2.4.6, scikit-learn 1.9.0, scipy 1.18.0, matplotlib 3.11.0,
-# openpyxl 3.1.5, torch 2.14.1 (CPU). CPU-only torch is enough:
+# Tested with Python 3.11.9: pandas 3.0.6, numpy 2.4.6, scikit-learn 1.9.1, scipy 1.17.1, matplotlib 3.11.2,
+# openpyxl 3.1.5, torch 2.14.1 (CPU). torch is only used by notebook 01 (GRU comparison); CPU-only torch is enough:
 #   pip install torch --index-url https://download.pytorch.org/whl/cpu
 pandas>=2.0
 numpy>=1.24
