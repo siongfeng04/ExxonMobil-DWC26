@@ -37,13 +37,14 @@ flowchart LR
     F --> G[Template deliverable]
 ```
 
-| Notebook                                                                          | What it does                                                    |
-| --------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| [00_Data_Preparation.ipynb](notebook/00_Data_Preparation.ipynb)                                     | Cleans the raw files in `dwc26/` into `data/` |
-| [01_Proxy_Model.ipynb](notebook/01_Proxy_Model.ipynb)                             | Compares proxy models and forecast methods                      |
-| [02_History_Matching_Forecast.ipynb](notebook/02_History_Matching_Forecast.ipynb) | History matching, optimiser comparison, validation, deliverable |
+| Notebook                                                                          | What it does                                                    | Run time |
+| --------------------------------------------------------------------------------- | --------------------------------------------------------------- | -------- |
+| [00_Data_Preparation.ipynb](notebook/00_Data_Preparation.ipynb)                   | Cleans the raw files in `dwc26/` into `data/`                   | ~40 min  |
+| [01_Proxy_Model.ipynb](notebook/01_Proxy_Model.ipynb)                             | Compares proxy models and forecast methods                      | ~12 min  |
+| [02_History_Matching_Forecast.ipynb](notebook/02_History_Matching_Forecast.ipynb) | History matching, optimiser comparison, validation, deliverable | ~6 min   |
 
-The full analysis, charts and reasoning are in the notebooks. [pipeline/](pipeline/) holds the same logic as notebook 02, without charts.
+The full analysis, charts and reasoning are in the notebooks; every chart has a short "What it shows" and "Findings"
+note under it. [pipeline/](pipeline/) holds the same logic as notebook 02, without charts.
 
 ## Key decisions
 
@@ -76,35 +77,63 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
+`torch` is only needed for notebook 01 (the GRU comparison); a CPU-only install is enough.
+The notebooks can be opened from the repo root or from inside `notebook/`; they find the repo root themselves.
+
 **Quick run (uses the cleaned data already in `data/`)**
 
-Run `python -m pipeline.main` from the repo root, or open notebook 02 and run all cells (~6 minutes).
-The case parameters (`01 Introduction.xlsx`) and the official template are read from `dwc26/TestCases/`.
+Run `python -m pipeline.main` from the repo root (~3 minutes), or open notebook 02 and run all cells (~6 minutes).
+Both write the deliverable to `outputs/result/`. The case parameters (`01 Introduction.xlsx`) and the official
+template are read from `dwc26/TestCases/`.
+
+The results are reproducible: seeds are fixed, and re-running the pipeline gives exactly the submitted deliverable
+and `history_match_results.xlsx`.
 
 **Full run from the raw files (optional, to rebuild `data/`)**
 
-1. Run [notebook 00](notebook/00_Data_Preparation.ipynb). It reads `dwc26/TestCases/` and writes the cleaned files to
-   `data/`. The grid-cleaning part (Sections 2–4) is slow (~1.6 GB of Excel) and its outputs are not used later;
-   to skip it, run only the setup cell and Sections 5–7 (case parameters and production curves).
-2. Run the pipeline or notebook 02 as in the quick run.
+1. Run [notebook 00](notebook/00_Data_Preparation.ipynb) (~40 minutes). It reads `dwc26/TestCases/` and writes the
+   cleaned files to `data/`. It needs the six grid files `03`–`08` (Train / Validation / Test Cases), which are in
+   the submitted zip but not in the GitHub repo (166–331 MB each, over GitHub's 100 MB file limit). If you cloned the
+   repo, copy them from the organiser's starter kit into `dwc26/TestCases/`. The grid-cleaning part (Sections 2–4) takes most of that time (~1.6 GB of Excel) and its
+   outputs are not used later; to skip it, run only the setup cell and Sections 5–7 (case parameters and production
+   curves).
+2. Optionally run [notebook 01](notebook/01_Proxy_Model.ipynb) to repeat the proxy and forecast-method comparison.
+3. Run the pipeline or notebook 02 as in the quick run.
 
 ## Repository layout
 
 ```
-data/                 cleaned outputs of notebook 00: simulated curves + observed history (used later), grid data
-dwc26/                organiser starter kit: raw files, case parameters, official template
-notebook/             00 data prep, 01 proxy model, 02 history matching + forecast
+data/                 cleaned outputs of notebook 00
+├── Simulation_Rates_Consolidated.xlsx        simulated rates of the 100 cases + observed history (used later)
+├── Simulation_Cumulatives_Consolidated.xlsx  simulated cumulatives of the 100 cases + observed history (used later)
+├── Cleaned (Overall Data)/                   grid data, all blocks (Parquet; not used later)
+└── Usable Data/                              grid data, active blocks only (Parquet; not used later)
+dwc26/TestCases/      organiser starter kit: raw files, case parameters, official template
+                      (grid files 03–08 are in the zip only: too large for GitHub)
+notebook/             00 data preparation, 01 proxy model, 02 history matching + forecast
 pipeline/             config, data loading, proxy, history matching, forecast, end-to-end run
+requirements.txt      Python packages (tested versions listed at the top)
 outputs/
 ├── result/           Excel outputs
 │   ├── 09 Template Deliverable.xlsx      the submission (10 cases, 2008 → 2028)
 │   └── history_match_results.xlsx        selected cases, acceptable matches, blind test, field backtest
 ├── figures/          one folder per notebook, charts numbered in the order they appear
-│   ├── 01_Proxy_Model/                   01–06: proxy accuracy, sensitivity, forecast backtests
+│   ├── 01_Proxy_Model/                   01–06: every chart in notebook 01 (see below)
 │   ├── 02_History_Matching_Forecast/     01–14: every chart in notebook 02 (see below)
 │   └── pipeline/                         01–03: key charts saved by python -m pipeline.main
 └── models/           notebook 01's saved models (created when notebook 01 is run)
 ```
+
+Notebook 01 charts:
+
+| File | Shows |
+|---|---|
+| `01_history_curves_by_split` | Simulated 1998–2008 cumulatives of all 100 cases, by train / validation / test split |
+| `02_history_proxy_parity_test` | Proxy vs simulator 2008 cumulatives on the 15 unseen test cases |
+| `03_history_proxy_examples_test` | Proxy vs simulator oil and water curves for three test cases |
+| `04_sensitivity_tornado` | How much each parameter moves 2008 oil and water (porosity dominates) |
+| `05_backtest_examples_test` | Decline curves vs GRU vs blend, forecasting 2006–2008 from data up to 2006 |
+| `06_forecast_2028_val_test` | Decline-curve vs GRU forecast to 2028 for the validation and test cases |
 
 Notebook 02 charts:
 
