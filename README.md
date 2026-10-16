@@ -92,11 +92,11 @@ and `history_match_results.xlsx`.
 **Full run from the raw files (optional, to rebuild `data/`)**
 
 1. Run [notebook 00](notebook/00_Data_Preparation.ipynb) (~40 minutes). It reads `dwc26/TestCases/` and writes the
-   cleaned files to `data/`. It needs the six grid files `03`–`08` (Train / Validation / Test Cases), which are in
-   the submitted zip but not in the GitHub repo (166–331 MB each, over GitHub's 100 MB file limit). If you cloned the
-   repo, copy them from the organiser's starter kit into `dwc26/TestCases/`. The grid-cleaning part (Sections 2–4) takes most of that time (~1.6 GB of Excel) and its
-   outputs are not used later; to skip it, run only the setup cell and Sections 5–7 (case parameters and production
-   curves).
+   cleaned files to `data/`. It needs the six grid files `03`–`08` (Train / Validation / Test Cases), which are not
+   included: copy them from the organiser's starter kit into `dwc26/TestCases/` (see [Large files](#large-files)).
+   The grid-cleaning part (Sections 2–4) takes most of the time (~1.6 GB of Excel)
+   and its outputs are not used later; to skip it, run only the setup cell and Sections 5–7 (case parameters and
+   production curves).
 2. Optionally run [notebook 01](notebook/01_Proxy_Model.ipynb) to repeat the proxy and forecast-method comparison.
 3. Run the pipeline or notebook 02 as in the quick run.
 
@@ -106,10 +106,10 @@ and `history_match_results.xlsx`.
 data/                 cleaned outputs of notebook 00
 ├── Simulation_Rates_Consolidated.xlsx        simulated rates of the 100 cases + observed history (used later)
 ├── Simulation_Cumulatives_Consolidated.xlsx  simulated cumulatives of the 100 cases + observed history (used later)
-├── Cleaned (Overall Data)/                   grid data, all blocks (Parquet; not used later)
-└── Usable Data/                              grid data, active blocks only (Parquet; not used later)
+├── Cleaned (Overall Data)/                   grid data, all blocks (Parquet; not used later; not included)
+└── Usable Data/                              grid data, active blocks only (Parquet; not used later; not included)
 dwc26/TestCases/      organiser starter kit: raw files, case parameters, official template
-                      (grid files 03–08 are in the zip only: too large for GitHub)
+                      (only files 01, 02 and 09 are included; grid files 03–08 are not)
 notebook/             00 data preparation, 01 proxy model, 02 history matching + forecast
 pipeline/             config, data loading, proxy, history matching, forecast, end-to-end run
 requirements.txt      Python packages (tested versions listed at the top)
@@ -123,6 +123,19 @@ outputs/
 │   └── pipeline/                         01–03: key charts saved by python -m pipeline.main
 └── models/           notebook 01's saved models (created when notebook 01 is run)
 ```
+
+### Large files
+
+Some large files are only needed to rebuild the grid data in notebook 00, so they are not included in the
+submission or on GitHub:
+
+| File | Size | How to get it |
+|---|---|---|
+| `dwc26/TestCases/03`–`08` (Train / Validation / Test Cases) | 166–331 MB each | Organiser's starter kit |
+| `data/Cleaned (Overall Data)/`, `data/Usable Data/` | ~580 MB in total | Run notebook 00 (needs the files above) |
+
+Everything the quick run needs is included: `data/Simulation_*_Consolidated.xlsx` and `dwc26/TestCases/01`, `02`
+and `09`.
 
 Notebook 01 charts:
 
